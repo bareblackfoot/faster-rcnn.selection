@@ -15,11 +15,11 @@ import numpy.random as npr
 from utils.cython_bbox import bbox_overlaps
 from model.bbox_transform import bbox_transform
 
-def anchor_target_layer(rpn_cls_score, gt_boxes, im_info, _feat_stride, all_anchors, num_anchors):
+def anchor_target_layer(rpn_cls_score, gt_boxes, im_info, _feat_stride, all_anchors, num_anchors_as):
   """Same as the anchor target layer in original Fast/er RCNN """
-  A = num_anchors
+  A = num_anchors_as
   total_anchors = all_anchors.shape[0]
-  K = total_anchors / num_anchors
+  # K = total_anchors / num_anchors
 
   # allow boxes to sit over the edge by a small amount
   _allowed_border = 0
@@ -44,6 +44,7 @@ def anchor_target_layer(rpn_cls_score, gt_boxes, im_info, _feat_stride, all_anch
 
   # overlaps between the anchors and the gt boxes
   # overlaps (ex, gt)
+  print(anchors.shape)
   overlaps = bbox_overlaps(
     np.ascontiguousarray(anchors, dtype=np.float),
     np.ascontiguousarray(gt_boxes, dtype=np.float))

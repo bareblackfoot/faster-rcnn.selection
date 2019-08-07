@@ -12,6 +12,7 @@ from __future__ import print_function
 
 import numpy as np
 import cv2
+import random
 
 
 def im_list_to_blob(ims):
@@ -41,7 +42,18 @@ def prep_im_for_blob(im, pixel_means, target_size, max_size):
   # Prevent the biggest axis from being more than MAX_SIZE
   if np.round(im_scale * im_size_max) > max_size:
     im_scale = float(max_size) / float(im_size_max)
-  im = cv2.resize(im, None, None, fx=im_scale, fy=im_scale,
+  im_ = cv2.resize(im, None, None, fx=im_scale, fy=im_scale,
                   interpolation=cv2.INTER_LINEAR)
 
-  return im, im_scale
+  # based on the ratio, padding the image.
+  im_scale_s = float(300) / float(im_size_max)
+  im_selector = cv2.resize(im, None, None, fx=im_scale_s, fy=im_scale_s,
+                           interpolation=cv2.INTER_LINEAR)
+  height_t, width_t, _ = im_selector.shape
+  resize = 300
+  padded_img = np.zeros((resize, resize, 3)).astype(np.float32)
+  left = random.randint(0, resize - width_t)
+  top = random.randint(0, resize - height_t)
+  padded_img[top:(height_t + top), left:(width_t + left), :] = im_selector
+
+  return im_, padded_img, im_scale

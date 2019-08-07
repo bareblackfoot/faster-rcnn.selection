@@ -22,6 +22,8 @@ from nets.vgg16 import vgg16
 from nets.resnet_v1 import resnetv1
 from nets.mobilenet_v1 import mobilenetv1
 
+from nets.selector import selector
+
 def parse_args():
   """
   Parse input arguments
@@ -29,19 +31,20 @@ def parse_args():
   parser = argparse.ArgumentParser(description='Train a Fast R-CNN network')
   parser.add_argument('--cfg', dest='cfg_file',
                       help='optional config file',
-                      default=None, type=str)
+                      default="/home/blackfoot/git/faster-rcnn.selection/experiments/cfgs/res50.yml", type=str)
   parser.add_argument('--weight', dest='weight',
+                      default="/home/blackfoot/datasets/pretrain/imagenet_weights/res50.ckpt",
                       help='initialize with pretrained model weights',
                       type=str)
   parser.add_argument('--imdb', dest='imdb_name',
                       help='dataset to train on',
-                      default='voc_2007_trainval', type=str)
+                      default='coco_2014_train+coco_2014_valminusminival', type=str)
   parser.add_argument('--imdbval', dest='imdbval_name',
                       help='dataset to validate on',
-                      default='voc_2007_test', type=str)
+                      default='coco_2014_minival', type=str)
   parser.add_argument('--iters', dest='max_iters',
                       help='number of iterations to train',
-                      default=70000, type=int)
+                      default=490000, type=int)
   parser.add_argument('--tag', dest='tag',
                       help='tag of the model',
                       default=None, type=str)
@@ -52,9 +55,9 @@ def parse_args():
                       help='set config keys', default=None,
                       nargs=argparse.REMAINDER)
 
-  if len(sys.argv) == 1:
-    parser.print_help()
-    sys.exit(1)
+  # if len(sys.argv) == 1:
+  #   parser.print_help()
+  #   sys.exit(1)
 
   args = parser.parse_args()
   return args
@@ -133,7 +136,10 @@ if __name__ == '__main__':
     net = mobilenetv1()
   else:
     raise NotImplementedError
-    
-  train_net(net, imdb, roidb, valroidb, output_dir, tb_dir,
+
+  # load selector networks
+  selector = selector("TRAIN")
+
+  train_net(net, selector, imdb, roidb, valroidb, output_dir, tb_dir,
             pretrained_model=args.weight,
             max_iters=args.max_iters)

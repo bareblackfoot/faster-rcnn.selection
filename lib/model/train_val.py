@@ -113,12 +113,15 @@ class SolverWrapper(object):
         print("It's likely that your checkpoint file has been compressed "
               "with SNAPPY.")
 
-  def construct_graph(self, sess):
+  def construct_graph(self, sess, selector):
     with sess.graph.as_default():
       # Set the random seed for tensorflow
       tf.set_random_seed(cfg.RNG_SEED)
       # Build the main computation graph
-      layers = self.net.create_architecture('TRAIN', self.imdb.num_classes, tag='default',
+
+
+      layers = self.net.create_architecture('TRAIN', self.imdb.num_classes,
+                                            selector=selector, tag='default',
                                             anchor_scales=cfg.ANCHOR_SCALES,
                                             anchor_ratios=cfg.ANCHOR_RATIOS)
       # Define the loss
@@ -239,13 +242,13 @@ class SolverWrapper(object):
       os.remove(str(sfile_meta))
       ss_paths.remove(sfile)
 
-  def train_model(self, sess, max_iters):
+  def train_model(self, sess, selector, max_iters):
     # Build data layers for both training and validation set
     self.data_layer = RoIDataLayer(self.roidb, self.imdb.num_classes)
     self.data_layer_val = RoIDataLayer(self.valroidb, self.imdb.num_classes, random=True)
 
     # Construct the computation graph
-    lr, train_op = self.construct_graph(sess)
+    lr, train_op = self.construct_graph(sess, selector)
 
     # Find previous snapshots if there is any to restore from
     lsf, nfiles, sfiles = self.find_previous()
@@ -360,7 +363,7 @@ def filter_roidb(roidb):
   return filtered_roidb
 
 
-def train_net(network, imdb, roidb, valroidb, output_dir, tb_dir,
+def train_net(network, selector, imdb, roidb, valroidb, output_dir, tb_dir,
               pretrained_model=None,
               max_iters=40000):
   """Train a Faster R-CNN network."""
@@ -374,5 +377,5 @@ def train_net(network, imdb, roidb, valroidb, output_dir, tb_dir,
     sw = SolverWrapper(sess, network, imdb, roidb, valroidb, output_dir, tb_dir,
                        pretrained_model=pretrained_model)
     print('Solving...')
-    sw.train_model(sess, max_iters)
+    sw.train_model(sess, selector, max_iters)
     print('done solving')

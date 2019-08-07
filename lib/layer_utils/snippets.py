@@ -44,6 +44,6 @@ def generate_anchors_pre_tf(height, width, feat_stride=16, anchor_scales=(8, 16,
   anchor_constant = tf.constant(anchors.reshape((1, A, 4)), dtype=tf.int32)
 
   length = K * A
-  anchors_tf = tf.reshape(tf.add(anchor_constant, shifts), shape=(length, 4))
+  anchors_tf = tf.reshape(tf.add(anchor_constant, shifts), shape=(K, A, 4))
   
   return tf.cast(anchors_tf, dtype=tf.float32), length
