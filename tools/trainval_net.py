@@ -45,6 +45,17 @@ def parse_args():
   parser.add_argument('--iters', dest='max_iters',
                       help='number of iterations to train',
                       default=490000, type=int)
+  #
+  # parser.add_argument('--imdb', dest='imdb_name',
+  #                     help='dataset to train on',
+  #                     default='voc_2007_trainval', type=str)
+  # parser.add_argument('--imdbval', dest='imdbval_name',
+  #                     help='dataset to validate on',
+  #                     default='voc_2007_test', type=str)
+  # parser.add_argument('--iters', dest='max_iters',
+  #                     help='number of iterations to train',
+  #                     default=70000, type=int)
+
   parser.add_argument('--tag', dest='tag',
                       help='tag of the model',
                       default=None, type=str)

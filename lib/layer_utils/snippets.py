@@ -22,9 +22,12 @@ def generate_anchors_pre(height, width, feat_stride, anchor_scales=(8,16,32), an
   shift_x, shift_y = np.meshgrid(shift_x, shift_y)
   shifts = np.vstack((shift_x.ravel(), shift_y.ravel(), shift_x.ravel(), shift_y.ravel())).transpose()
   K = shifts.shape[0]
+  # R = len(anchor_ratios)
+  # S = len(anchor_scales)
   # width changes faster, so here it is H, W, C
   anchors = anchors.reshape((1, A, 4)) + shifts.reshape((1, K, 4)).transpose((1, 0, 2))
-  anchors = anchors.reshape((K * A, 4)).astype(np.float32, copy=False)
+  anchors = anchors.reshape((1, height, width, A * 4)).astype(np.float32, copy=False)
+  # [1, height, width, self._num_anchors * 4]
   length = np.int32(anchors.shape[0])
 
   return anchors, length
@@ -41,9 +44,11 @@ def generate_anchors_pre_tf(height, width, feat_stride=16, anchor_scales=(8, 16,
 
   anchors = generate_anchors(ratios=np.array(anchor_ratios), scales=np.array(anchor_scales))
   A = anchors.shape[0]
+  # R = len(anchor_ratios)
+  # S = len(anchor_scales)
   anchor_constant = tf.constant(anchors.reshape((1, A, 4)), dtype=tf.int32)
 
   length = K * A
-  anchors_tf = tf.reshape(tf.add(anchor_constant, shifts), shape=(K, A, 4))
+  anchors_tf = tf.reshape(tf.add(anchor_constant, shifts), shape=(1, height, width, A * 4))
   
   return tf.cast(anchors_tf, dtype=tf.float32), length

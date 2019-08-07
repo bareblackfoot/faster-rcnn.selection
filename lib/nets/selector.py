@@ -51,8 +51,8 @@ class selector(object):
     self.testing = mode == 'TEST'
     self._scope = 'selector'
     self._decide_blocks()
-    H = W = 300
-    self._image = tf.placeholder(tf.float32, shape=[1, H, W, 3])
+    # H = W = 300
+    self._image = tf.placeholder(tf.float32, shape=[1, None, None, 3])
 
   # Do the first few layers manually, because 'SAME' padding can behave inconsistently
   # for images of different sizes: sometimes 0, sometimes 1
@@ -63,7 +63,7 @@ class selector(object):
       net = slim.max_pool2d(net, [3, 3], stride=2, padding='VALID', scope='pool1')
     return net
 
-  def select(self, reuse=None):
+  def select(self, num_select, reuse=None):
     assert (0 <= cfg.RESNET.FIXED_BLOCKS <= 3)
     # Now the base is always fixed during training
     with slim.arg_scope(resnet_arg_scope(is_training=False)):
@@ -84,12 +84,10 @@ class selector(object):
                                            include_root_block=False,
                                            reuse=reuse,
                                            scope=self._scope)
-        net_conv = slim.flatten(net_conv, scope='flatten')
-        fc6 = slim.fully_connected(net_conv, 1024, scope='fc6')
-        fc7 = slim.fully_connected(fc6, 3, scope='fc7')
-        fc7 = tf.nn.softmax(tf.reshape(fc7, [1, 3]), -1)
+        net_conv = slim.conv2d(net_conv, num_outputs=128, kernel_size=[1, 1], padding="SAME", scope="c1_s1")
+        net_conv = slim.conv2d(net_conv, num_outputs=num_select, kernel_size=[1, 1], padding="SAME", activation_fn=None, scope="c1_s2")
         # Selection; Find the selector index
-        idx = tf.argmax(fc7, 1)
+        idx = tf.argmax(tf.nn.softmax(net_conv, -1), -1)
     return idx
 
   def _decide_blocks(self):
@@ -97,5 +95,5 @@ class selector(object):
     self._blocks = [resnet_v1_block('block1', base_depth=16, num_units=3, stride=2),
                   resnet_v1_block('block2', base_depth=32, num_units=4, stride=2),
                   # use stride 1 for the last conv4 layer
-                  resnet_v1_block('block3', base_depth=64, num_units=6, stride=2),
-                  resnet_v1_block('block4', base_depth=128, num_units=3, stride=2)]
+                  resnet_v1_block('block3', base_depth=64, num_units=6, stride=1),
+                  resnet_v1_block('block4', base_depth=128, num_units=3, stride=1)]

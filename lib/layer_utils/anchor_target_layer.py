@@ -22,7 +22,7 @@ def anchor_target_layer(rpn_cls_score, gt_boxes, im_info, _feat_stride, all_anch
   # K = total_anchors / num_anchors
 
   # allow boxes to sit over the edge by a small amount
-  _allowed_border = 0
+  _allowed_border = 10
 
   # map of shape (..., H, W)
   height, width = rpn_cls_score.shape[1:3]
@@ -44,12 +44,14 @@ def anchor_target_layer(rpn_cls_score, gt_boxes, im_info, _feat_stride, all_anch
 
   # overlaps between the anchors and the gt boxes
   # overlaps (ex, gt)
-  print(anchors.shape)
+  # print(anchors.shape)
   overlaps = bbox_overlaps(
     np.ascontiguousarray(anchors, dtype=np.float),
     np.ascontiguousarray(gt_boxes, dtype=np.float))
   argmax_overlaps = overlaps.argmax(axis=1)
   max_overlaps = overlaps[np.arange(len(inds_inside)), argmax_overlaps]
+  # import pdb
+  # pdb.set_trace()
   gt_argmax_overlaps = overlaps.argmax(axis=0)
   gt_max_overlaps = overlaps[gt_argmax_overlaps,
                              np.arange(overlaps.shape[1])]
